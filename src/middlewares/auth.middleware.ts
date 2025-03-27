@@ -15,7 +15,6 @@ declare global {
         id: number;
         email: string;
         role: string;
-        organizationId: number | null;
       };
     }
   }
@@ -47,7 +46,6 @@ export const authenticate:RequestHandler = async (
         id: true,
         email: true,
         role: true,
-        organizationId: true,
       },
     });
     
@@ -61,13 +59,5 @@ export const authenticate:RequestHandler = async (
   } catch (error) {
     res.status(401).json({ message: 'Unauthorized: Invalid token' });
     return;
-  }
-};
-
-export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    res.status(403).json({ message: 'Forbidden: Admin access required' });
   }
 };

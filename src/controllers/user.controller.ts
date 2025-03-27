@@ -12,7 +12,6 @@ export const getAllUsers = async (req: Request, res: Response) => {
         email: true,
         name: true,
         role: true,
-        organizationId: true,
         organization: {
           select: {
             id: true,
@@ -43,7 +42,6 @@ export const getUserById: RequestHandler = async (req: Request, res: Response):P
         email: true,
         name: true,
         role: true,
-        organizationId: true,
         organization: {
           select: {
             id: true,
@@ -79,14 +77,12 @@ export const updateUser = async (req: Request, res: Response) => {
         name,
         email,
         role,
-        organizationId: organizationId ? Number(organizationId) : null,
       },
       select: {
         id: true,
         email: true,
         name: true,
         role: true,
-        organizationId: true,
       },
     });
     

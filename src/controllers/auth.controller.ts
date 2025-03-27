@@ -26,10 +26,9 @@ export const register: RequestHandler = async (req: Request, res: Response): Pro
         email: validatedData.email,
         password: hashedPassword,
         name: validatedData.name,
-        organizationId: validatedData.organizationId,
       },
     });
-    
+
     const token = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET || 'fallback-secret',
@@ -43,7 +42,6 @@ export const register: RequestHandler = async (req: Request, res: Response): Pro
         id: user.id,
         email: user.email,
         name: user.name,
-        organizationId: user.organizationId,
       },
     });
   } catch (error) {
@@ -77,13 +75,15 @@ export const login:RequestHandler = async (req: Request, res: Response): Promise
       res.status(401).json({ message: 'Invalid credentials' });
       return;
     }
-    
+
     const token = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET || 'fallback-secret',
       { expiresIn: '1d' }
     );
     
+    console.log(user);
+
     res.status(200).json({
       message: 'Login successful',
       token,
@@ -92,7 +92,6 @@ export const login:RequestHandler = async (req: Request, res: Response): Promise
         email: user.email,
         name: user.name,
         role: user.role,
-        organizationId: user.organizationId,
       },
     });
   } catch (error) {

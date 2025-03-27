@@ -6,17 +6,10 @@ const prisma = new PrismaClient();
 
 export const getAllOrganizations = async (req: Request, res: Response) => {
   try {
+    const userId = req.user?.id;
+    
     const organizations = await prisma.organization.findMany({
-      include: {
-        users: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
-        },
-      },
+      where: { userId: userId },
     });
     
     res.status(200).json(organizations);
@@ -32,19 +25,10 @@ export const getAllOrganizations = async (req: Request, res: Response) => {
 export const getOrganizationById:RequestHandler = async (req: Request, res: Response):Promise<void> => {
   try {
     const { id } = req.params;
+    const userId = req.user?.id;
     
     const organization = await prisma.organization.findUnique({
-      where: { id: Number(id) },
-      include: {
-        users: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
-        },
-      },
+      where: { id: Number(id), userId: userId },
     });
     
     if (!organization) {
@@ -64,6 +48,13 @@ export const getOrganizationById:RequestHandler = async (req: Request, res: Resp
 
 export const createOrganization: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   try {
+    const userId = (req as any).user?.id;
+    
+    if (!userId) {
+      res.status(401).json({ message: 'User not authenticated' });
+      return;
+    }
+
     const validatedData = organizationSchema.parse(req.body);
 
     if (validatedData.name.length > 50) {
@@ -76,7 +67,10 @@ export const createOrganization: RequestHandler = async (req: Request, res: Resp
         name: {
           equals: validatedData.name,
           mode: 'insensitive'
-        }
+        },
+        userId: {
+          equals: userId,
+        },
       }
     });
 
@@ -86,7 +80,10 @@ export const createOrganization: RequestHandler = async (req: Request, res: Resp
     }
     
     const organization = await prisma.organization.create({
-      data: validatedData,
+      data: {
+        ...validatedData,
+        userId,
+      }
     });
     
     res.status(201).json(organization);
@@ -102,6 +99,22 @@ export const createOrganization: RequestHandler = async (req: Request, res: Resp
 export const updateOrganization: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    const userId = req.user?.id;
+
+    const existingOrganization = await prisma.organization.findUnique({
+      where: { id: Number(id) }
+    });
+    
+    if (!existingOrganization) {
+      res.status(404).json({ message: 'Organization not found' });
+      return;
+    }
+    
+    if (existingOrganization.userId !== userId) {
+      res.status(403).json({ message: 'You do not have permission to update this organization' });
+      return;
+    }
+
     const validatedData = organizationSchema.parse(req.body);
 
     const existingOrg = await prisma.organization.findFirst({
@@ -112,7 +125,8 @@ export const updateOrganization: RequestHandler = async (req: Request, res: Resp
         },
         id: {
           not: Number(id)
-        }
+        },
+        userId: userId,
       }
     });
 
@@ -139,6 +153,21 @@ export const updateOrganization: RequestHandler = async (req: Request, res: Resp
 export const deleteOrganization = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.user?.id;
+
+    const organization = await prisma.organization.findUnique({
+      where: { id: Number(id) }
+    });
+    
+    if (!organization) {
+      res.status(404).json({ message: 'Organization not found' });
+      return;
+    }
+    
+    if (organization.userId !== userId) {
+      res.status(403).json({ message: 'You do not have permission to delete this organization' });
+      return;
+    }
 
     await prisma.organization.delete({
       where: { id: Number(id) },

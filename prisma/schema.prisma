@@ -15,18 +15,19 @@ model User {
   role              String              @default("user")
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-  organizationId    Int?
-  organization      Organization?       @relation(fields: [organizationId], references: [id])
   integrationConfig IntegrationConfig[]
+  organization      Organization[]
+  wealthboxUser     WealthboxUser[]
 }
 
 model Organization {
   id            Int             @id @default(autoincrement())
-  name          String          @unique
+  name          String          
   description   String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  users         User[]
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
   wealthboxUsers WealthboxUser[]
 }
 
@@ -38,17 +39,17 @@ model IntegrationConfig {
   apiToken      String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
   @@unique([userId, integrationType])
 }
 
 model WealthboxUser {
   id                      Int      @id @default(autoincrement())
-  wealthboxId             String   @unique
   email                   String
   name                    String
   account                 Int?
   excludedFromAssignments Boolean  @default(false)
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
   organizationId          Int?
   organization            Organization? @relation(fields: [organizationId], references: [id])
   createdAt               DateTime @default(now())

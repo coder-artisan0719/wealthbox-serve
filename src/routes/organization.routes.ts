@@ -6,7 +6,7 @@ import {
   updateOrganization,
   deleteOrganization,
 } from '../controllers/organization.controller';
-import { authenticate, isAdmin } from '../middlewares/auth.middleware';
+import { authenticate } from '../middlewares/auth.middleware';
 
 const router = Router();
 

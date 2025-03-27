@@ -119,6 +119,7 @@ export const syncWealthboxUsers:RequestHandler = async (req: Request, res: Respo
       const existingUser = await prisma.wealthboxUser.findFirst({
         where: {
           email: user.email,
+          userId: req.user.id,
         }
       });
       
@@ -129,12 +130,11 @@ export const syncWealthboxUsers:RequestHandler = async (req: Request, res: Respo
       
       const createdUser = await prisma.wealthboxUser.create({
         data: {
-          wealthboxId: user.id.toString(),
           email: user.email,
           name: user.name,
           account: user.account || null,
           excludedFromAssignments: user.excluded_from_assignments || false,
-          organizationId: req.user.organizationId
+          userId: req.user.id
         }
       });
       
@@ -165,7 +165,7 @@ export const getWealthboxUsers:RequestHandler = async (req: Request, res: Respon
     
     const { organizationId } = req.query;
     
-    const whereClause: any = {};
+    const whereClause: any = { userId: req.user.id };
     
     if (organizationId && organizationId !== 'all') {
       whereClause.organizationId = Number(organizationId);
