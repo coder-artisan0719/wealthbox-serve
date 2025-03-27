@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int                 @id @default(autoincrement())
+  email             String              @unique
+  password          String
+  name              String
+  role              String              @default("user")
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  organizationId    Int?
+  organization      Organization?       @relation(fields: [organizationId], references: [id])
+  integrationConfig IntegrationConfig[]
+}
+
+model Organization {
+  id            Int             @id @default(autoincrement())
+  name          String          @unique
+  description   String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  users         User[]
+  wealthboxUsers WealthboxUser[]
+}
+
+model IntegrationConfig {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  integrationType String
+  apiToken      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, integrationType])
+}
+
+model WealthboxUser {
+  id                      Int      @id @default(autoincrement())
+  wealthboxId             String   @unique
+  email                   String
+  name                    String
+  account                 Int?
+  excludedFromAssignments Boolean  @default(false)
+  organizationId          Int?
+  organization            Organization? @relation(fields: [organizationId], references: [id])
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
